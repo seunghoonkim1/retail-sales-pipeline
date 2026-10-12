@@ -4,7 +4,7 @@ Date: 2026-10-08
 
 ## Status
 
-Accepted
+Accepted. Superseded in part by [ADR 0004](0004-support-daily-and-weekly-sales-grains.md).
 
 ## Context
 
