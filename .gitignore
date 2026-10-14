@@ -226,3 +226,6 @@ __marimo__/
 *.tfvars
 *.tfvars.json
 crash.log
+
+# Local data files: too large for Git, and dataset terms may restrict redistribution
+data/
