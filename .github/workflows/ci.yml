@@ -35,7 +35,7 @@ jobs:
             terraform -chdir="$dir" validate
           done
   
-    python:
+  python:
     name: Python checks
     runs-on: ubuntu-latest
 
