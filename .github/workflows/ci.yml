@@ -1,0 +1,36 @@
+name: CI
+
+# When to run: on every pull request, and on every push to main
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Least privilege: this workflow can only read the repo
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    name: Terraform checks
+    runs-on: ubuntu-latest # a fresh Linux machine from GitHub, discarded afterward
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.16.5 # same version as your machine
+
+      - name: Check formatting
+        run: terraform fmt -check -recursive infra
+
+      - name: Validate each Terraform folder
+        run: |
+          for dir in infra/bootstrap infra/account; do
+            echo "Validating $dir"
+            terraform -chdir="$dir" init -backend=false -input=false
+            terraform -chdir="$dir" validate
+          done
