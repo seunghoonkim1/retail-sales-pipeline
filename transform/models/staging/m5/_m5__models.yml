@@ -1,0 +1,33 @@
+models:
+  - name: stg_m5__calendar
+    description: One row per day, with the Walmart week split into fiscal year and week.
+    columns:
+      - name: date_day
+        data_tests: [unique, not_null]
+      - name: fiscal_week
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                max_value: 53
+
+  - name: stg_m5__sales
+    description: Daily units per item and store.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [channel_item_id, store_id, date_day]
+    columns:
+      - name: units
+        data_tests: [not_null]
+
+  - name: stg_m5__prices
+    description: Weekly sell price per item and store.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [channel_item_id, store_id, wm_yr_wk]
+    columns:
+      - name: sell_price_usd
+        data_tests: [not_null]

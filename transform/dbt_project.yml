@@ -1,0 +1,12 @@
+name: retail_sales_pipeline
+version: "1.0.0"
+profile: retail_sales_pipeline # which connection settings to use (in profiles.yml)
+
+model-paths: ["models"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+
+models:
+  retail_sales_pipeline:
+    staging:
+      +materialized: view # staging models are views: no stored copy of the data

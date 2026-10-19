@@ -57,3 +57,9 @@ jobs:
       
       - name: Run tests
         run: uv run pytest -v
+      
+      - name: Check dbt project
+        working-directory: transform
+        run: |
+          uv run dbt deps
+          uv run dbt parse
