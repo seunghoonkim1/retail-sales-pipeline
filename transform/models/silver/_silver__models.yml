@@ -1,0 +1,36 @@
+models:
+  - name: dim_date
+    description: One row per calendar day.
+    columns:
+      - name: date_day
+        data_tests: [unique, not_null]
+
+  - name: dim_fiscal_calendar
+    description: One row per day per fiscal calendar; complete weeks only.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [calendar_name, date_day]
+    columns:
+      - name: date_day
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_day
+
+  - name: dim_fiscal_week
+    description: One row per fiscal week per calendar.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [calendar_name, fiscal_year_week]
+    columns:
+      - name: fiscal_month
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                max_value: 12

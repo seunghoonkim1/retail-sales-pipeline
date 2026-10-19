@@ -10,3 +10,10 @@ models:
   retail_sales_pipeline:
     staging:
       +materialized: view # staging models are views: no stored copy of the data
+    silver:
+      +materialized: table # silver is stored, unlike staging
+      +schema: silver
+
+seeds:
+  retail_sales_pipeline:
+    +schema: silver # load seeds into the silver schema

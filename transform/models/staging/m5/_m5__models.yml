@@ -1,6 +1,10 @@
 models:
   - name: stg_m5__calendar
     description: One row per day, with the Walmart week split into fiscal year and week.
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "regexp_matches(wm_yr_wk, '^[01][0-9]{4}$')"
     columns:
       - name: date_day
         data_tests: [unique, not_null]

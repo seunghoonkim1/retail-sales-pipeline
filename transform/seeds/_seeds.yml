@@ -1,0 +1,25 @@
+seeds:
+  - name: dim_channel
+    description: One row per sales channel. Maintained by hand; changes go through pull requests.
+    config:
+      column_types:
+        channel: varchar
+        channel_name: varchar
+        calendar_name: varchar
+        sales_grain: varchar
+    columns:
+      - name: channel
+        data_tests: [unique, not_null]
+      - name: calendar_name
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fiscal_week')
+                field: calendar_name
+
+      - name: sales_grain
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [daily, weekly]
