@@ -46,12 +46,14 @@ One row per day per fiscal calendar.
 | calendar_name | text | no | e.g. `walmart` |
 | date_day | date | no | The date |
 | fiscal_year | integer | no | Fiscal year |
-| fiscal_month | integer | no | Fiscal month (1–12) |
+| fiscal_month | integer | no | Fiscal month. M5: derived using Walmart's 4-5-4 pattern; week 53 assumed in month 12 |
 | fiscal_week | integer | no | Fiscal week (1–53) |
 | fiscal_year_week | integer | no | Year and week as `YYYYWW`, e.g. `202633` |
 | week_index | integer | no | Continuous week number across years; never resets |
 | week_start_date | date | no | First day of the fiscal week |
 | week_end_date | date | no | Last day of the fiscal week |
+| week_calendar_year | integer | no | Calendar year of the week's end date |
+| week_calendar_month | integer | no | Calendar month of the week's end date |
 
 Key: `calendar_name` + `date_day`. Source: official calendar files (M5 `calendar.csv` for Walmart).
 
@@ -69,11 +71,13 @@ One row per fiscal week per calendar. Derived from `dim_fiscal_calendar`; never 
 | calendar_name | text | no | e.g. `walmart` |
 | fiscal_year_week | integer | no | `YYYYWW` |
 | fiscal_year | integer | no | Fiscal year |
-| fiscal_month | integer | no | Fiscal month |
+| fiscal_month | integer | no | Fiscal month. M5: derived using Walmart's 4-5-4 pattern; week 53 assumed in month 12 |
 | fiscal_week | integer | no | Fiscal week |
 | week_index | integer | no | Continuous week number |
 | week_start_date | date | no | First day of the week |
 | week_end_date | date | no | Last day of the week |
+| week_calendar_year | integer | no | Calendar year of the week's end date |
+| week_calendar_month | integer | no | Calendar month of the week's end date |
 
 Key: `calendar_name` + `fiscal_year_week`.
 
@@ -168,3 +172,4 @@ SKUs are not stored here. Gold joins `channel_item_id` to `map_channel_item` usi
 
 - M5: `pos_sales_usd` is calculated as units × weekly price, not reported, so it is an approximation.
 - M5: product names, prime item IDs, and vendor stock IDs are synthetic.
+- M5: wm_yr_wk names the Walmart year by the calendar year it starts in. Staging converts it to Walmart's official fiscal year, named by the year it ends in ('11101' = fiscal year 2012, week 1).
