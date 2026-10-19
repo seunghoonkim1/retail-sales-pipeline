@@ -1,0 +1,12 @@
+sources:
+  - name: m5
+    description: Weekly M5 files delivered to bronze by the replay script.
+    meta:
+      external_location: "read_csv('../data/bronze/m5/{name}/**/*.csv', all_varchar = true, filename = true)"
+    tables:
+      - name: sales
+        description: Daily units per item and store; one file per Walmart week.
+      - name: prices
+        description: Weekly sell price per item and store; one file per Walmart week.
+      - name: calendar
+        description: One row per day, mapping dates to Walmart weeks.

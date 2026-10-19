@@ -1,0 +1,7 @@
+retail_sales_pipeline:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../data/warehouse/dev.duckdb # DuckDB database file, outside Git
+      threads: 4

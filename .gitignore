@@ -229,3 +229,8 @@ crash.log
 
 # Local data files: too large for Git, and dataset terms may restrict redistribution
 data/
+
+# dbt generated files
+transform/target/
+transform/dbt_packages/
+transform/logs/
