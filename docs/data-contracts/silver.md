@@ -127,13 +127,15 @@ One row per channel item per day, summed across all stores. Only for sources tha
 | channel_item_id | text | no | Channel's item ID, as reported |
 | date_day | date | no | Sales date |
 | pos_units | integer | no | Units sold; may be negative |
-| pos_sales_usd | decimal(12,2) | no | Retail sales value |
+| pos_sales_usd | decimal(12,2) | yes | Retail sales value. 0 when units are 0 and no price exists; empty when units were sold but the price is unknown |
 | source_system | text | no | e.g. `m5` |
 | source_file | text | no | Original file name |
-| source_file_version | text | no | S3 version ID of the bronze file |
+| source_file_version | text | yes | S3 version ID of the bronze file; empty when loaded from local files |
 | loaded_at | timestamp | no | Load time (UTC) |
 
 Key: `channel` + `channel_item_id` + `date_day`.
+Tests:
+- Units sold with no known price (empty pos_sales_usd): warning, not failure.
 
 ## fct_sales_weekly
 
@@ -147,11 +149,11 @@ One row per channel item per fiscal week, summed across all stores.
 | fiscal_week | integer | no | Fiscal week in the channel's calendar |
 | week_start_date | date | no | First day of the fiscal week |
 | pos_units | integer | no | Units sold at point of sale; may be negative when returns exceed sales |
-| pos_sales_usd | decimal(12,2) | no | Retail sales value |
+| pos_sales_usd | decimal(12,2) | yes | Retail sales value. 0 when units are 0 and no price exists; empty when units were sold but the price is unknown |
 | store_count | integer | yes | Stores with sales, if the source provides it |
 | source_system | text | no | e.g. `m5` |
 | source_file | text | no | Original file name |
-| source_file_version | text | no | S3 version ID of the bronze file |
+| source_file_version | text | yes | S3 version ID of the bronze file; empty when loaded from local files |
 | loaded_at | timestamp | no | Load time (UTC) |
 | source_grain | text | no | `weekly` if loaded directly, `daily` if rolled up from fct_sales_daily |
 

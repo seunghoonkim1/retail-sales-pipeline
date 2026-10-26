@@ -10,6 +10,8 @@ models:
   retail_sales_pipeline:
     staging:
       +materialized: view # staging models are views: no stored copy of the data
+    intermediate:
+      +materialized: view # a step between staging and silver; nothing stored
     silver:
       +materialized: table # silver is stored, unlike staging
       +schema: silver
