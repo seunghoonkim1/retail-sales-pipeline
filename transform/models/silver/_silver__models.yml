@@ -72,3 +72,24 @@ models:
                 severity: warn # units sold with no known price: flag for review
       - name: source_file
         data_tests: [not_null]
+  
+  - name: fct_sales_weekly
+    description: One row per channel item per fiscal week, for every source.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [channel, channel_item_id, week_start_date]
+    columns:
+      - name: channel
+        data_tests: [not_null]
+      - name: channel_item_id
+        data_tests: [not_null]
+      - name: week_start_date
+        data_tests: [not_null]
+      - name: pos_units
+        data_tests: [not_null]
+      - name: source_grain
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [daily, weekly]
