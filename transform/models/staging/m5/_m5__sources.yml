@@ -10,3 +10,11 @@ sources:
         description: Weekly sell price per item and store; one file per Walmart week.
       - name: calendar
         description: One row per day, mapping dates to Walmart weeks.
+      - name: item_master_products
+        description: Full item master snapshots, main tab. One folder per snapshot date.
+        meta:
+          external_location: "read_csv('../data/bronze/m5/item_master/*/products.csv', all_varchar = true, filename = true, hive_partitioning = true)"
+      - name: item_master_channel_items
+        description: Full item master snapshots, channel item map. One folder per snapshot date.
+        meta:
+          external_location: "read_csv('../data/bronze/m5/item_master/*/channel_items.csv', all_varchar = true, filename = true, hive_partitioning = true)"
