@@ -93,3 +93,38 @@ models:
           - accepted_values:
               arguments:
                 values: [daily, weekly]
+  
+  - name: dim_product
+    description: One row per SKU with its latest values (SCD1).
+    columns:
+      - name: sku
+        data_tests: [unique, not_null]
+      - name: status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [active, discontinued]
+
+  - name: map_channel_item
+    description: Channel item to SKU over time (SCD2), rebuilt from item master snapshots.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [channel, channel_item_id, valid_from]
+    columns:
+      - name: channel
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_channel')
+                field: channel
+      - name: sku
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_product')
+                field: sku
+      - name: valid_from
+        data_tests: [not_null]

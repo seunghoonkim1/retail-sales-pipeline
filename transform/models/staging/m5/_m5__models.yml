@@ -35,3 +35,23 @@ models:
     columns:
       - name: sell_price_usd
         data_tests: [not_null]
+  
+  - name: stg_m5__products
+    description: One row per SKU per item master snapshot.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [snapshot_date, sku]
+    columns:
+      - name: sku
+        data_tests: [not_null]
+
+  - name: stg_m5__channel_items
+    description: One row per channel item per item master snapshot.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [snapshot_date, channel, channel_item_id]
+    columns:
+      - name: sku
+        data_tests: [not_null]

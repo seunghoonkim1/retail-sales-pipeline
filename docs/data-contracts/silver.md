@@ -107,7 +107,7 @@ One row per channel item per validity period. Maps channel item IDs to SKUs over
 | sku | text | no | Links to `dim_product` |
 | prime_item_id | text | yes | Channel's grouping of item variants |
 | vendor_stock_id | text | yes | Supplier stock ID used with this channel |
-| valid_from | date | no | First day this mapping applies |
+| valid_from | date | no | First day this mapping applies: the item master's effective date when given, otherwise the snapshot date |
 | valid_to | date | yes | Last day it applies; empty means current |
 | is_current | boolean | no | True for the active mapping |
 
@@ -175,3 +175,4 @@ SKUs are not stored here. Gold joins `channel_item_id` to `map_channel_item` usi
 - M5: `pos_sales_usd` is calculated as units × weekly price, not reported, so it is an approximation.
 - M5: product names, prime item IDs, and vendor stock IDs are synthetic.
 - M5: wm_yr_wk names the Walmart year by the calendar year it starts in. Staging converts it to Walmart's official fiscal year, named by the year it ends in ('11101' = fiscal year 2012, week 1).
+- Item master: synthetic, generated as full snapshots on three dates. dim_product keeps each SKU's last known values. A channel item removed from the item master entirely is not closed in map_channel_item; this is a known limitation.
