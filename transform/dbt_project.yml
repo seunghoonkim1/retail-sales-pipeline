@@ -15,6 +15,9 @@ models:
     silver:
       +materialized: table # silver is stored, unlike staging
       +schema: silver
+    gold:
+      +materialized: table
+      +schema: gold
 
 seeds:
   retail_sales_pipeline:

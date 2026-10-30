@@ -1,0 +1,25 @@
+models:
+  - name: mart_sales_daily_sku
+    description: Daily sales per channel item with SKU, product, and calendar details.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [channel, channel_item_id, date_day]
+    columns:
+      - name: sku
+        data_tests:
+          - not_null:
+              config:
+                severity: warn # sales with no SKU mapping on their date: review
+
+  - name: mart_sales_weekly_sku
+    description: Weekly sales per channel item and SKU, with store counts and U/S/W.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [channel, channel_item_id, fiscal_year_week]
+          config:
+            severity: warn # an item remapped mid-week splits its week: review
+
+  - name: mart_sales_monthly_sku
+    description: Monthly sales per channel item and SKU; weeks assigned by their end date.

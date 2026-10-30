@@ -150,7 +150,8 @@ One row per channel item per fiscal week, summed across all stores.
 | week_start_date | date | no | First day of the fiscal week |
 | pos_units | integer | no | Units sold at point of sale; may be negative when returns exceed sales |
 | pos_sales_usd | decimal(12,2) | yes | Retail sales value. 0 when units are 0 and no price exists; empty when units were sold but the price is unknown |
-| store_count | integer | yes | Stores with sales, if the source provides it |
+| stores_carrying | integer | yes | Stores carrying the item that week (M5: stores with a price); empty if the source doesn't provide store detail |
+| stores_selling | integer | yes | Stores that sold at least one unit that week; empty if the source doesn't provide store detail |
 | source_system | text | no | e.g. `m5` |
 | source_file | text | no | Original file name |
 | source_file_version | text | yes | S3 version ID of the bronze file; empty when loaded from local files |
