@@ -13,6 +13,10 @@ calendar as (
     select * from {{ ref('dim_fiscal_calendar') }}
 ),
 
+store_counts as (
+    select * from {{ ref('int_m5__store_counts_weekly') }}
+),
+
 rolled_up as (
     select
         daily.channel,
@@ -44,17 +48,23 @@ rolled_up as (
 )
 
 select
-    channel,
-    channel_item_id,
-    fiscal_year,
-    fiscal_week,
-    week_start_date,
-    pos_units,
-    cast(pos_sales_usd as decimal(12, 2)) as pos_sales_usd,
-    cast(null as integer) as store_count,
+    rolled_up.channel,
+    rolled_up.channel_item_id,
+    rolled_up.fiscal_year,
+    rolled_up.fiscal_week,
+    rolled_up.week_start_date,
+    rolled_up.pos_units,
+    cast(rolled_up.pos_sales_usd as decimal(12, 2)) as pos_sales_usd,
+    store_counts.stores_carrying,
+    store_counts.stores_selling,
     'daily' as source_grain,
-    source_system,
-    source_file,
-    source_file_version,
+    rolled_up.source_system,
+    rolled_up.source_file,
+    rolled_up.source_file_version,
     current_timestamp as loaded_at
 from rolled_up
+left join store_counts
+    on rolled_up.channel = store_counts.channel
+    and rolled_up.channel_item_id = store_counts.channel_item_id
+    and rolled_up.fiscal_year = store_counts.fiscal_year
+    and rolled_up.fiscal_week = store_counts.fiscal_week
