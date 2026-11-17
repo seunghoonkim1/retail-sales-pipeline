@@ -14,7 +14,8 @@ priced as (
         sales.date_day,
         sales.units,
         prices.sell_price_usd,
-        sales.source_file
+        sales.source_file,
+        sales.wm_yr_wk
     from sales
     left join prices
         on sales.channel_item_id = prices.channel_item_id
@@ -35,6 +36,7 @@ select
     end as pos_sales_usd,
     'm5' as source_system,
     any_value(source_file) as source_file,
+    wm_yr_wk as source_partition,
     cast(null as varchar) as source_file_version
 from priced
-group by channel_item_id, date_day
+group by channel_item_id, date_day, wm_yr_wk
