@@ -130,6 +130,7 @@ One row per channel item per day, summed across all stores. Only for sources tha
 | pos_sales_usd | decimal(12,2) | yes | Retail sales value. 0 when units are 0 and no price exists; empty when units were sold but the price is unknown |
 | source_system | text | no | e.g. `m5` |
 | source_file | text | no | Original file name |
+| source_partition | text | yes | Partition key of the bronze file the row came from (M5: wm_yr_wk) |
 | source_file_version | text | yes | S3 version ID of the bronze file; empty when loaded from local files |
 | loaded_at | timestamp | no | Load time (UTC) |
 

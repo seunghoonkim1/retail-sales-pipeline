@@ -2,7 +2,7 @@ sources:
   - name: m5
     description: Weekly M5 files delivered to bronze by the replay script.
     meta:
-      external_location: "read_csv('../data/bronze/m5/{name}/**/*.csv', all_varchar = true, filename = true)"
+      external_location: "read_csv('../data/bronze/m5/{name}/**/*.csv', all_varchar = true, filename = true, hive_partitioning = true, hive_types_autocast = false)"
     tables:
       - name: sales
         description: Daily units per item and store; one file per Walmart week.
@@ -13,8 +13,8 @@ sources:
       - name: item_master_products
         description: Full item master snapshots, main tab. One folder per snapshot date.
         meta:
-          external_location: "read_csv('../data/bronze/m5/item_master/*/products.csv', all_varchar = true, filename = true, hive_partitioning = true)"
+          external_location: "read_csv('../data/bronze/m5/item_master/*/products.csv', all_varchar = true, filename = true, hive_partitioning = true, hive_types_autocast = false)"
       - name: item_master_channel_items
         description: Full item master snapshots, channel item map. One folder per snapshot date.
         meta:
-          external_location: "read_csv('../data/bronze/m5/item_master/*/channel_items.csv', all_varchar = true, filename = true, hive_partitioning = true)"
+          external_location: "read_csv('../data/bronze/m5/item_master/*/channel_items.csv', all_varchar = true, filename = true, hive_partitioning = true, hive_types_autocast = false)"
