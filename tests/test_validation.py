@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from retail_pipeline.validation import M5_SALES, validate_file
+from retail_pipeline.validation import M5_SALES, DeliveryHistory, validate_file
 
 COLUMNS = M5_SALES.columns
 WEEK = "11452"
@@ -35,6 +35,9 @@ def write_delivery(folder: Path, columns: list[str], rows: list[list[str]]) -> P
 @pytest.fixture
 def folder(tmp_path: Path) -> Path:
     return tmp_path
+
+
+# ---------- Rejection checks ----------
 
 
 def test_valid_file_passes(folder: Path) -> None:
@@ -79,3 +82,55 @@ def test_rejects_duplicate_rows(folder: Path) -> None:
     result = validate_file(write_delivery(folder, COLUMNS, rows), M5_SALES, WEEK)
     assert not result.passed
     assert "duplicates: 1 keys" in result.errors[0]
+
+
+# ---------- Warning checks ----------
+
+# A normal history: 4 units in each recent week, both items sold last week.
+TYPICAL_HISTORY = DeliveryHistory(
+    recent_weekly_units=[4, 4, 4],
+    previous_items=frozenset({"0123", "0456"}),
+)
+
+
+def test_valid_file_with_history_has_no_warnings(folder: Path) -> None:
+    path = write_delivery(folder, COLUMNS, VALID_ROWS)
+    result = validate_file(path, M5_SALES, WEEK, TYPICAL_HISTORY)
+    assert result.passed
+    assert result.warnings == []
+
+
+def test_warns_on_non_numeric_units(folder: Path) -> None:
+    rows = [
+        *VALID_ROWS,
+        row("0789", "2015-01-24", units=""),
+        row("0789", "2015-01-25", units="abc"),
+    ]
+    result = validate_file(write_delivery(folder, COLUMNS, rows), M5_SALES, WEEK)
+    assert result.passed  # a warning, not a rejection
+    assert "2 rows have blank or non-numeric units" in result.warnings[0]
+
+
+def test_warns_on_total_far_above_history(folder: Path) -> None:
+    rows = [row("0123", "2015-01-24", units="1000"), row("0456", "2015-01-24")]
+    result = validate_file(
+        write_delivery(folder, COLUMNS, rows), M5_SALES, WEEK, TYPICAL_HISTORY
+    )
+    assert result.passed
+    assert any("total units: 1,001" in w for w in result.warnings)
+
+
+def test_warns_on_missing_items(folder: Path) -> None:
+    rows = [row("0123", "2015-01-24"), row("0123", "2015-01-25")]
+    result = validate_file(
+        write_delivery(folder, COLUMNS, rows), M5_SALES, WEEK, TYPICAL_HISTORY
+    )
+    assert result.passed
+    assert any("['0456']" in w for w in result.warnings)
+
+
+def test_no_history_skips_history_checks(folder: Path) -> None:
+    rows = [row("0123", "2015-01-24", units="1000")]
+    result = validate_file(write_delivery(folder, COLUMNS, rows), M5_SALES, WEEK)
+    assert result.passed
+    assert result.warnings == []

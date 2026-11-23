@@ -4,6 +4,7 @@ Each check either rejects the file (an error) or flags it for review (a warning)
 A file with any error must not be loaded. Warnings are reported but don't block.
 """
 
+import statistics  # NEW: for the median in check_total_vs_history
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -18,6 +19,7 @@ class SourceSpec:
     columns: list[str]  # the exact expected columns, in order
     week_column: str  # the column holding the week inside the file
     key_columns: list[str]  # the columns that identify one row
+    item_column: str  # NEW: the column identifying an item
     units_column: str
 
 
@@ -35,6 +37,7 @@ M5_SALES = SourceSpec(
     ],
     week_column="wm_yr_wk",
     key_columns=["item_id", "store_id", "date"],
+    item_column="item_id",  # NEW
     units_column="units",
 )
 
@@ -52,12 +55,24 @@ class ValidationResult:
         return not self.errors
 
 
+# NEW: history from earlier deliveries, used by two of the warning checks
+@dataclass(frozen=True)
+class DeliveryHistory:
+    """What's known from earlier deliveries of the same source."""
+
+    recent_weekly_units: list[int]  # total units in each recent week
+    previous_items: frozenset[str]  # items that sold in the previous week
+
+
 def read_as_text(con: duckdb.DuckDBPyConnection, path: Path) -> None:
     """Load the file into a table called `delivery`, every column as text."""
     con.execute(
         f"CREATE OR REPLACE TABLE delivery AS "
         f"SELECT * FROM read_csv('{path}', all_varchar = true)"
     )
+
+
+# ---------- Rejection checks (errors) ----------
 
 
 def check_columns(con: duckdb.DuckDBPyConnection, spec: SourceSpec) -> str | None:
@@ -101,7 +116,71 @@ def check_duplicates(con: duckdb.DuckDBPyConnection, spec: SourceSpec) -> str | 
     return None
 
 
-def validate_file(path: Path, spec: SourceSpec, expected_week: str) -> ValidationResult:
+# ---------- Warning checks ----------
+
+
+def check_numeric_units(con: duckdb.DuckDBPyConnection, spec: SourceSpec) -> str | None:
+    """Warn about blank or non-numeric unit values."""
+    bad_rows = con.execute(
+        f"SELECT count(*) FROM delivery "
+        f"WHERE try_cast({spec.units_column} AS bigint) IS NULL"
+    ).fetchone()[0]
+    if bad_rows:
+        return f"units: {bad_rows} rows have blank or non-numeric {spec.units_column}"
+    return None
+
+
+def check_total_vs_history(
+    con: duckdb.DuckDBPyConnection,
+    spec: SourceSpec,
+    history: DeliveryHistory,
+    low: float = 0.2,
+    high: float = 5.0,
+) -> str | None:
+    """Warn when this week's total units are far from the recent typical week."""
+    if not history.recent_weekly_units:
+        return None
+    total = con.execute(
+        f"SELECT coalesce(sum(try_cast({spec.units_column} AS bigint)), 0) "
+        f"FROM delivery"
+    ).fetchone()[0]
+    typical = statistics.median(history.recent_weekly_units)
+    if typical > 0 and not (low * typical <= total <= high * typical):
+        return (
+            f"total units: {total:,} this week vs. a typical {typical:,.0f}; "
+            f"outside {low}x to {high}x"
+        )
+    return None
+
+
+def check_missing_items(
+    con: duckdb.DuckDBPyConnection, spec: SourceSpec, history: DeliveryHistory
+) -> str | None:
+    """Warn about items that sold last week but have no rows this week."""
+    current = {
+        row[0]
+        for row in con.execute(
+            f"SELECT DISTINCT {spec.item_column} FROM delivery"
+        ).fetchall()
+    }
+    missing = sorted(history.previous_items - current)
+    if missing:
+        return (
+            f"missing items: {len(missing)} items sold last week have no rows "
+            f"this week, e.g. {missing[:5]}"
+        )
+    return None
+
+
+# ---------- Running everything ----------
+
+
+def validate_file(
+    path: Path,
+    spec: SourceSpec,
+    expected_week: str,
+    history: DeliveryHistory | None = None,  # NEW: optional history
+) -> ValidationResult:
     """Run every check on one delivered file."""
     result = ValidationResult(file=path)
     con = duckdb.connect()
@@ -120,6 +199,16 @@ def validate_file(path: Path, spec: SourceSpec, expected_week: str) -> Validatio
         ):
             if error:
                 result.errors.append(error)
+
+        # NEW: warnings only matter for a file that will actually be loaded.
+        if not result.errors:
+            warnings = [check_numeric_units(con, spec)]
+            if history:
+                warnings += [
+                    check_total_vs_history(con, spec, history),
+                    check_missing_items(con, spec, history),
+                ]
+            result.warnings = [w for w in warnings if w]
     finally:
         con.close()
     return result
