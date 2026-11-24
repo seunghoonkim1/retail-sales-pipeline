@@ -68,7 +68,7 @@ def read_as_text(con: duckdb.DuckDBPyConnection, path: Path) -> None:
     """Load the file into a table called `delivery`, every column as text."""
     con.execute(
         f"CREATE OR REPLACE TABLE delivery AS "
-        f"SELECT * FROM read_csv('{path}', all_varchar = true)"
+        f"SELECT * FROM read_csv('{path}', all_varchar = true, hive_partitioning = false)"
     )
 
 

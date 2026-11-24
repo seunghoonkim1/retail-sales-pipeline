@@ -84,6 +84,18 @@ def test_rejects_duplicate_rows(folder: Path) -> None:
     assert "duplicates: 1 keys" in result.errors[0]
 
 
+def test_week_comes_from_the_data_not_the_folder(folder: Path) -> None:
+    # A real bronze folder layout: the folder says 11452, the data says 11501.
+    week_folder = folder / "wm_yr_wk=11452"
+    week_folder.mkdir()
+    rows = [row("0123", "2015-01-31", week="11501")]
+    path = write_delivery(week_folder, COLUMNS, rows)
+
+    result = validate_file(path, M5_SALES, "11452")
+    assert not result.passed
+    assert "file is for 11452, but the data contains 11501" in result.errors[0]
+
+
 # ---------- Warning checks ----------
 
 # A normal history: 4 units in each recent week, both items sold last week.
